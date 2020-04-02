@@ -1,7 +1,7 @@
 class RC4:
     """
     This class implements the RC4 streaming cipher.
-    
+
     Derived from http://cypherpunks.venona.com/archive/1994/09/msg00304.html
     """
 

@@ -73,24 +73,46 @@ sudo make install
 Dans cette partie, vous allez récupérer le script Python `manual-decryption.py`. Il vous faudra également le fichier de capture `arp.cap` contenant un message arp chiffré avec WEP et la librairie `rc4.py` pour générer les keystreams indispensables pour chiffrer/déchiffrer WEP. Tous les fichiers doivent être copiés dans le même répertoire local sur vos machines.
 
 - Ouvrir le fichier de capture `arp.cap` avec Wireshark
-   
 - Utiliser Wireshark pour déchiffrer la capture. Pour cela, il faut configurer dans Wireshark la clé de chiffrement/déchiffrement WEP (Dans Wireshark : Preferences&rarr;Protocols&rarr;IEEE 802.11&rarr;Decryption Keys). Il faut également activer le déchiffrement dans la fenêtre IEEE 802.11 (« Enable decryption »). Vous trouverez la clé dans le script Python `manual-decryption.py`.
-   
 - Exécuter le script avec `python manual-decryption.py`
-   
 - Comparer la sortie du script avec la capture text déchiffrée par Wireshark
-   
 - Analyser le fonctionnement du script
+
+> Lorsque nous déchiffrons la capture Wireshark nous obtenons ceci :
+>
+> ![](img/1_2.png)
+>
+> Sur cette dernière nous pouvons voir que nous avons des informations par rapport à WEP. Nous avons l'IV, l'index de la clé ainsi que l'ICV. 
+>
+> Une fois le script executé nous avons obtenu ceci :
+>
+> ![](img/1_1.png)
+>
+> Nous pouvons remarquer que le text retourné par le script correspond au message de la trame wireshark (en hexadecimal). Nous avons pu remarquer que lorsque nous activion le dechiffrement de la trame dans wireshark les parametre WEP n'étaient pas dechiffré. Nous avons donc juste ajouter dans le script le fait d'afficher l'ICV en chiffrer pour voir que les valeurs corresponde bien.
+>
+> En ce qui conserne le script il fait les étapes suivante:
+>
+> 1. Recupère le premier paquet de de la capture `arp.cap`
+> 2. Ensuite il va creer le seed qui sera utilisé par RC4. Ce seed est composé de l'IV, qui est recuperer de la capture, puis de la clé qui est connue.
+> 3. Ensuite il récupère l'ICV de la trame (encore chiffré)
+> 4. Puis il va concatener les datas du paquet ainsi que l'ICV pour obtenir l'ensemble des données qui ont été chiffreré (bloc du bas sur cette capture)![](img/1_3.png)
+> 5. Puis pour dechiffrer ce bloc il va creer le keystream. Pour ce faire il va instancier un objet RC4 en lui donnant le seed précédement construit. Pour dechiffrer les donnée il va suffire de XOR les données chiffrées et le keystream creé. En effet comme le seed est le même, car composé de l'IV et de la clé, que lorsque les données ont été chiffré il suffit de XOR les données chiffrées pour récuperer les données claires
 
 ### 2. Chiffrement manuel de WEP
 
 Utilisant le script `manual-decryption.py` comme guide, créer un nouveau script `manual-encryption.py` capable de chiffrer un message, l’enregistrer dans un fichier pcap et l’envoyer.
 Vous devrez donc créer votre message, calculer le contrôle d’intégrité (ICV), et les chiffrer (voir slides du cours pour les détails).
 
+> Voici la capture importé dans Wireshark. Nous avons modifié le message de l'exercice 1 en changeant l'adresse IP faisant la requetes ARP (192.168.1.100 -> 192.168.1.102).
+>
+> ![](img/2_1.png)
+>
+> Le fichier cap se trouve ici [files/task2.cap](files/task2.cap)
+
 
 ### Quelques éléments à considérer :
 
-- Vous pouvez utiliser la même trame fournie comme « template » pour votre trame forgée (conseillé). Il faudra mettre à jour le champ de données qui transporte le message (`wepdata`) et le contrôle d’intégrite (`icv`).
+- Vous pouvez utiliser la même trame fournie comme « template » pour votre trame forgée (conseillé). Il faudra mettre à jour le champ de données qui transporte le message (`wepdata`) et le contrôle d’intégrité (`icv`).
 - Le champ `wepdata` accepte des données en format text.
 - Le champ `icv` accepte des données en format « long ».
 - Vous pouvez vous guider à partir du script fourni pour les différentes conversions de formats qui pourraient être nécessaires.
@@ -100,6 +122,12 @@ Vous devrez donc créer votre message, calculer le contrôle d’intégrité (IC
 ### 3. Fragmentation
 
 Dans cette partie, vous allez enrichir votre script développé dans la partie précédente pour chiffrer 3 fragments.
+
+> Voici la capture Wireskark avec nos 3 segments. Nous pouvons voir que le message reconstitué est bien celui que nous avions écrit dans le script. De plus nous pouvons voir que Wireshark nous montre que les 3 paquets sont lié a l'aide des points dans la colonne "No."
+>
+> ![](img/3_1.png)
+>
+> Le fichier cap se trouve ici [files/task3.cap](files/task3.cap)
 
 ### Quelques éléments à considérer :
 
